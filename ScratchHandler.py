@@ -1,35 +1,29 @@
 import scratch
 
 class ScratchHandler:
-  def __init__(self, config, gpioSvc):
-    self.__gpioSvc = gpioSvc
+  def __init__(self, rpiScratchIO_):
+    self.__rpiScratchIO = rpiScratchIO_
 
     # Set the defaults for the connection
     host = "localhost"
-    port = 40000
+    port = 42001
+    self.__aliases = {}
 
     # If the connection setting are given in the configuration file,
     # then update them.
-    if config.has_section("ScratchConnection"):
-      host = config.get("ScratchConnection","host")
-      port = config.getint("ScratchConnection","port")
+    if self.__rpiScratchIO.config != None:
+      if self.__rpiScratchIO.config.has_section("ScratchConnection"):
+        host = self.__rpiScratchIO.config.get("ScratchConnection","host")
+        port = self.__rpiScratchIO.config.getint("ScratchConnection","port")
 
-    # Read the aliases from the configuration file
-    self.__aliases = {}
-    if config.has_section("Aliases"):
-      # Convert list of pairs to dict and append
-      self.__aliases = dict(config.items("Aliases"))
+      # Read the aliases from the configuration file
+      if self.__rpiScratchIO.config.has_section("Aliases"):
+        # Convert list of pairs to dict and append
+        self.__aliases = dict(self.__rpiScratchIO.config.items("Aliases"))
 
     # Open a Scratch connection.
     #self.scratch = scratch.Scratch(host, port) 
-    self.scratchConnection = scratch.Scratch()
-
-    # Give the gpioSvc object a pointer to this object
-    gpioSvc.scratchHandler(self)
-
-    # Load the current Scratch session with the GPIO pins and bus
-    # devices that are declared within the configuration file.
-    gpioSvc.addScratchSensors()
+    #self.scratchConnection = scratch.Scratch()
 
 
   def __del__(self):

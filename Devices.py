@@ -7,12 +7,12 @@ class NoSuchChannel(Exception):
 
 class GenericDevice(object):
 
-  def __init__(self,deviceName_):
+  def __init__(self,deviceName_,scratchHandler_):
     self.deviceName = deviceName_
     self.inputChannels = []
     self.outputChannels = []
     self.configured = False
-    self.scratchHandler = ScratchHandler.svc()
+    self.scratchHandler = scratchHandler_
 
   """Need to implement this in the derived class."""
   def configure(self,options):
@@ -58,9 +58,9 @@ class GenericDevice(object):
 
 class GpioDevice(GenericDevice):
 
-  def __init__(self,deviceName_):
-    super(GenericDevice, self).__init__(deviceName_)
-    self.rpiGpioInterface = RpiGpioInterface.svc()
+  def __init__(self,deviceName_,scratchHandler_,gpioInterface_):
+    super(GenericDevice, self).__init__(deviceName_,scratchHandler_)
+    self.rpiGpioInterface = gpioInterface_
     self.gpioIds = [] # Associated pins
 
   def requestGpioIds(self):
@@ -68,10 +68,25 @@ class GpioDevice(GenericDevice):
 
 #--------------------------------------
 
+class SimpleGpio(GpioDevice):
+
+  def __init__(self,deviceName_,scratchHandler_,gpioInterface_,gpioId_):
+    super(GenericDevice, self).__init__(deviceName_,scratchHandler_,gpioInterface_)
+    self.gpioIds = [gpioId_]
+    
+    # Request this pin
+    self.requestGpioIds()
+
+  def read: # to add this
+
+  def write: # to add this
+
+#--------------------------------------
+
 class SpiDevice(GpioDevice):
 
-  def __init__(self,deviceName_,spiChannel_,spiDevice_):
-    super(SpiDevice, self).__init__(deviceName_)
+  def __init__(self,deviceName_,scratchHandler_,gpioInterface_,spiChannel_,spiDevice_):
+    super(SpiDevice, self).__init__(deviceName_,scratchHandler_,gpioInterface_)
     self.spiChannel = spiChannel_
     self.spiDevice = spiDevice_
 
@@ -91,8 +106,8 @@ class SpiDevice(GpioDevice):
 #--------------------------------------
 
 class FileConnection(GenericDevice):
-  def __init__(self,deviceName_,read_=True):
-    super(GenericDevice, self).__init__(deviceName_)
+  def __init__(self,deviceName_,scratchHandler_,read_=True):
+    super(GenericDevice, self).__init__(deviceName_,scratchHandler_)
     self.read = read_
     if self.read:
       accessType = 'r'
@@ -124,8 +139,8 @@ class FileConnection(GenericDevice):
 
 class MCP3008(SpiDevice):
 
-  def __init__(self,spiChannel,spiDevice):
-    super(MCP3008, self).__init__("MCP3008",spiChannel,spiDevice)
+  def __init__(self,scratchHandler_,gpioInterface_,spiChannel_,spiDevice_):
+    super(MCP3008, self).__init__("MCP3008",scratchHandler_,gpioInterface_,spiChannel_,spiDevice_)
     for i in xrange(8):
       self._inputChannels += [i]
 
