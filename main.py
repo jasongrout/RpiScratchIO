@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-import sys
+import sys,time
 from RpiScratchIO import RpiScratchIO
 
 if __name__ == "__main__":
@@ -9,3 +9,9 @@ if __name__ == "__main__":
     configFile = sys.argv[1]
 
   r = RpiScratchIO(configFile)
+  try:
+    while 1:
+      time.sleep(1000)
+
+  except KeyboardInterrupt:
+    r.cleanup()

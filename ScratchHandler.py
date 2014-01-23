@@ -31,9 +31,13 @@ class ScratchHandler:
     self.scratchConnection.disconnect()
 
 
-
-
   def listen(self):
+    print "listen"
+
+  def stop(self):
+    print "stop"
+
+  def listen2(self):
     while True:
         try:
            yield self.scratchConnection.receive()
