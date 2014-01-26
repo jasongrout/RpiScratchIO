@@ -146,14 +146,14 @@ class RpiGpioConnections:
       elif connection.find("SPI") == 0:
         if connection == "SPI0":
           if len(self.__spi0_devices) != 0:
-            raise Exception("ERROR: %s is already allocated SPI0" % self.__spi0_devices)
+            raise Exception("ERROR: %s is already allocated SPI0.0" % self.__spi0_devices)
           self.__spi0_devices += [deviceName]
           for bcmId in self.__spi0_pins:
             self.__gpioPins[bcmId].associatedDevices += [ deviceName ]
         elif connection == "SPI1":
-          if len(self.__spi0_devices) != 0:
-            raise Exception("ERROR: %s is already allocated SPI0" % self.__spi0_devices)
-          self.__spi0_devices += [deviceName]
+          if len(self.__spi1_devices) != 0:
+            raise Exception("ERROR: %s is already allocated SPI0.1" % self.__spi1_devices)
+          self.__spi1_devices += [deviceName]
           for bcmId in self.__spi1_pins:
             self.__gpioPins[bcmId].associatedDevices += [ deviceName ]
         else:
