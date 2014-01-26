@@ -1,3 +1,4 @@
+import string, sys, threading
 import scratch
 
 class ScratchHandler:
@@ -16,31 +17,45 @@ class ScratchHandler:
         host = self.__rpiScratchIO.config.get("ScratchConnection","host")
         port = self.__rpiScratchIO.config.getint("ScratchConnection","port")
 
-      # Read the aliases from the configuration file
-      if self.__rpiScratchIO.config.has_section("Aliases"):
-        # Convert list of pairs to dict and append
-        self.__aliases = dict(self.__rpiScratchIO.config.items("Aliases"))
-
     # Open a Scratch connection.
-    #self.scratch = scratch.Scratch(host, port) 
-    #self.scratchConnection = scratch.Scratch()
+    print " >> Connecting to Scratch on %s using port %d" % (host, port)
+    try:
+      self.scratchConnection = scratch.Scratch(host, port) 
+    except scratch.ScratchError:
+      print " ERROR: Cannot connect to Scratch."
+      print " Start Scratch with remote sensors enabled before running this program."
+      sys.exit(1)
 
 
-  def __del__(self):
-    # Close the Scratch connection.
+  def cleanup(self):
+    print "  >> Shutting down the connection to Scratch."
+    self.shutdown_flag = False
     self.scratchConnection.disconnect()
 
-
+  def clientThread(self):
+    deviceNames = self.__rpiScratchIO.devices.keys()
+    while not self.shutdown_flag:
+      try:
+        msg = self.scratchConnection.receive()
+        if msg[0] == 'broadcast':
+          cmd = msg[1]
+          frags = string.split(cmd,':')
+          
+        elif msg[0] == 'sensor-update':
+          cmd = msg[1]
+          for deviceName in cmd.keys():
+            # Could be some other global variable.
+            # Therefore, should not throw an error, but just ignore the change.
+            if not deviceName in deviceNames:
+              continue
+            self.__rpiScratchIO.devices[deviceName].write(cmd[deviceName])
+        else:
+          continue
+      except scratch.ScratchError:
+        self.shutdown_flag = True
+      
   def listen(self):
-    print "listen"
-
-  def stop(self):
-    print "stop"
-
-  def listen2(self):
-    while True:
-        try:
-           yield self.scratchConnection.receive()
-        except scratch.ScratchError:
-           raise StopIteration
-
+    print "  >> Listening for commands from Scratch."
+    self.shutdown_flag = False
+    self.server_thread = threading.Thread(target=self.clientThread)
+    self.server_thread.start()

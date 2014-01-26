@@ -2,7 +2,7 @@ import os.path, string
 import ConfigParser
 import RPi.GPIO as GPIO
 from ScratchHandler import ScratchHandler
-from RpiGpioInterface import RpiGpioInterface
+from RpiGpioConnections import RpiGpioConnections
 from Devices import *
 
 class RpiScratchIO:
@@ -23,11 +23,13 @@ class RpiScratchIO:
       self.config.optionxform = str # case sensitive keys
       self.config.read(configFile)
 
-    self.rpiGpioInterface = RpiGpioInterface()
+    self.rpiGpioConnections = RpiGpioConnections()
     self.scratchHandler = ScratchHandler(self)
 
     self.devices = {}
     self.__parseConfiguration()
+    print " >> Printing the device connections:"
+    self.rpiGpioConnections.printConnections()
 
     # Start the Scratch listening thread
     self.scratchHandler.listen()
@@ -83,13 +85,15 @@ class RpiScratchIO:
     # Now create each device object and add them to the devices dict.
     for device in deviceTypes.keys():
       exec "deviceObj = %s(device,self,deviceConnections[device])" % deviceTypes[device]
+      deviceObj.addSensors() # Tell Scratch about the input channels
       self.devices[device] = deviceObj
+
 
   #----------------------------------------------
 
   # Since Python does not always call the destructor
   def cleanup(self):
-    self.scratchHandler.stop()
+    self.scratchHandler.cleanup()
     for device in self.devices.keys():
       self.devices[device].cleanup()
 
