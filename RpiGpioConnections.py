@@ -184,7 +184,7 @@ class RpiGpioConnections:
   def printConnections(self):
     for bcmId in self.__gpioPins.keys():
       if len(self.__gpioPins[bcmId].associatedDevices) > 0 :
-           print "BCM id %d, connector P%d, pin number %d, attached devices %s" % (bcmId, self.__gpioPins[bcmId].connectorNumber, self.__gpioPins[bcmId].pinNumber, self.__gpioPins[bcmId].associatedDevices)
+        print "BCM id %d, connector P%d, pin number %d, attached devices %s" % (bcmId, self.__gpioPins[bcmId].connectorNumber, self.__gpioPins[bcmId].pinNumber, self.__gpioPins[bcmId].associatedDevices)
     if len(self.__spi0_devices) > 0:
       print "SPIO_0 devices = %s" % self.__spi0_devices
     if len(self.__spi1_devices) > 0:
