@@ -4,7 +4,7 @@ import sys,time
 from RpiScratchIO import RpiScratchIO
 
 if __name__ == "__main__":
-  configFile = "devices.cfg"
+  configFile = "RpiScratchIO.cfg"
   if len(sys.argv) > 1:
     configFile = sys.argv[1]
 

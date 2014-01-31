@@ -52,10 +52,12 @@ class RpiScratchIO:
         raise Exception("Error: %s has already been defined in %s" % (device % configFile))
 
       if len(className) > 0:
+        if not ("(" in className and ")" in className):
+          raise Exception("Error: class name %s must be followed by parentheses ()" % className)
         deviceTypes[device] = className
       elif "GPIO" in device:
         # Allow BCM numbered GPIO reference without connection listing
-        deviceTypes[device] = "SimpleGpio"
+        deviceTypes[device] = "SimpleGpio()"
         deviceConnections[device] = [device]
       else:
         # This is not allowed
@@ -84,7 +86,14 @@ class RpiScratchIO:
 
     # Now create each device object and add them to the devices dict.
     for device in deviceTypes.keys():
-      exec "deviceObj = %s(device,self,deviceConnections[device])" % deviceTypes[device]
+
+      # Build the basic arguments string
+      basicArguments = "'%s',self,%s" % (device,deviceConnections[device])
+
+      # Prepend the basic arguments, in front of any optional arguments
+      objStr = string.replace(deviceTypes[device],"(","("+basicArguments)
+      print objStr
+      exec "deviceObj = %s" % objStr
       deviceObj.addSensors() # Tell Scratch about the input channels
       self.devices[device] = deviceObj
 
