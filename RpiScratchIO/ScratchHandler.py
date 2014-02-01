@@ -28,14 +28,14 @@ class ScratchHandler:
     try:
       self.scratchConnection = scratch.Scratch(host, port) 
     except scratch.ScratchError:
-      print " ERROR: Cannot connect to Scratch."
-      print " Start Scratch with remote sensors enabled before running this program."
+      print "ERROR: Cannot connect to Scratch."
+      print "       Start Scratch with remote sensors enabled before running this program."
       sys.exit(1)
 
   #-----------------------------------------
 
   def cleanup(self):
-    print "  >> Shutting down the connection to Scratch."
+    print " >> Shutting down the connection to Scratch."
     self.shutdown_flag = False
     self.scratchConnection.disconnect()
 
@@ -58,7 +58,7 @@ class ScratchHandler:
   #-----------------------------------------
 
   def listen(self):
-    print "  >> Listening for commands from Scratch."
+    print " >> Listening for commands from Scratch."
     self.shutdown_flag = False
     self.server_thread = threading.Thread(target=self.clientThread)
     self.server_thread.start()
@@ -86,8 +86,6 @@ class ScratchHandler:
     else:
       arguments = "None"
 
-    print "frags=%s" % frags
-
     # The device must be available.
     # (Ignore this without a warning message, since it might be a broadcast for another client.)
     if not deviceName in self.deviceNames:
@@ -97,7 +95,7 @@ class ScratchHandler:
     if not functionName in self.availableFunctions:
       print("WARNING: function name \"%s\" not available.  Available function names:" % functionName)
       for availableFunction in self.availableFunctions:
-        print(availableFunction)
+        print("         %s" % availableFunction)
       return None
 
     # Split the arguments into a list
@@ -143,7 +141,6 @@ class ScratchHandler:
   #-----------------------------------------
 
   def __parseSensorUpdate(self,cmd):
-    print "cmd = %s" % cmd
 
     # The GPIO bcm pins are special and correspond to one channel only.
     # Other devices with one channel, should be allowed to assume channel 0.

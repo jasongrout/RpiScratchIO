@@ -168,13 +168,13 @@ class SpiDevice(GpioDevice):
   def __init__(self,deviceName_,rpiScratchIO_,connections_):
     super(SpiDevice, self).__init__(deviceName_,rpiScratchIO_,connections_)
     if len(self.connections) != 1:
-      raise Exception("SPI device %s must have one connection to SPI0 or SPI1" % self.deviceName)
+      raise Exception("ERROR: SPI device %s must have one connection to SPI0 or SPI1" % self.deviceName)
     if self.connections[0] == "SPI0":
       spiDevice = 0
     elif self.connection[0] == "SPI1":
       spiDevice = 1
     else:
-      raise Exception("SPI device %s must have one connection to SPI0 or SPI1" % self.deviceName)
+      raise Exception("ERROR: SPI device %s must have one connection to SPI0 or SPI1" % self.deviceName)
       
     spiChannel = 0
 

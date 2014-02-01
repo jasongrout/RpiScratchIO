@@ -52,7 +52,7 @@ class ScratchIO:
   def __parseConfiguration(self):
 
     if not self.config.has_section("DeviceTypes"):  # This section must exist!!!
-      raise Exception("Error: %s contains no device definitions" % configFile)
+      raise Exception("ERROR: %s contains no device definitions" % configFile)
 
     # Convert list of pairs to dict and append
     print self.config.items("DeviceTypes")
@@ -62,11 +62,11 @@ class ScratchIO:
       print device
       print className
       if device in deviceTypes.keys():
-        raise Exception("Error: %s has already been defined in %s" % (device % configFile))
+        raise Exception("ERROR: %s has already been defined in %s" % (device % configFile))
 
       if len(className) > 0:
         if not ("(" in className and ")" in className):
-          raise Exception("Error: class name %s must be followed by parentheses ()" % className)
+          raise Exception("ERROR: class name %s must be followed by parentheses ()" % className)
         deviceTypes[device] = className
       elif "GPIO" in device:
         # Allow BCM numbered GPIO reference without connection listing
@@ -74,7 +74,7 @@ class ScratchIO:
         deviceConnections[device] = [device]
       else:
         # This is not allowed
-        raise Exception("Error: %s must be assigned a class name" % device)
+        raise Exception("ERROR: %s must be assigned a class name" % device)
 
     # This is optional and not needed if all of the DeviceType
     # declarations are BCM ids
@@ -92,7 +92,7 @@ class ScratchIO:
       if not device in deviceConnections.keys():
         print device
         print deviceConnections.keys()
-        raise Exception("Error: device %s has no connections listed" % device)
+        raise Exception("ERROR: device %s has no connections listed" % device)
 
     # Set GPIO mode
     GPIO.setmode(GPIO.BCM)
