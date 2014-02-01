@@ -102,6 +102,8 @@ class SimpleGpio(GpioDevice):
       print("WARNING: \"config\" expects at least one argument.  No arguments were given")
       return None
       
+    print "config %s" % argList
+
     if argList[0] == "in":
       if nargs == 1:
         GPIO.setup(self.bcmId,GPIO.IN)
@@ -117,11 +119,11 @@ class SimpleGpio(GpioDevice):
         print("WARNING: device %s expects \"callback,rising\",\"callback,falling\" or \"callback,both\"")
         return None
       if argList[1] == 'rising':
-        GPIO.add_event_detect(self.bcmId, GPIO.RISING, callback=self.gpioCallBack) 
+        GPIO.add_event_detect(self.bcmId, GPIO.RISING, callback=self.gpioCallBack, bouncetime=200) 
       elif argList[1] == 'falling':
-        GPIO.add_event_detect(self.bcmId, GPIO.FALLING, callback=self.gpioCallBack)
+        GPIO.add_event_detect(self.bcmId, GPIO.FALLING, callback=self.gpioCallBack, bouncetime=200)
       elif argList[1] == 'both':
-        GPIO.add_event_detect(self.bcmId, GPIO.BOTH, callback=self.gpioCallBack)
+        GPIO.add_event_detect(self.bcmId, GPIO.BOTH, callback=self.gpioCallBack, bouncetime=200)
       else:
         print("WARNING: device %s expects \"callback,rising\",\"callback,falling\" or \"callback,both\"")
         return None
@@ -136,7 +138,7 @@ class SimpleGpio(GpioDevice):
   def read(self,channelId): # to add this
     if not self.configured: # use the default options
       self.config(["in"])
-    value = int(GPIO.input(self.connections[0]))
+    value = int(GPIO.input(self.bcmId))
     self.rpiScratchIO.scratchHandler.scratchConnection.sensorupdate({self.deviceName:value})
 
   #-----------------------------
@@ -146,15 +148,18 @@ class SimpleGpio(GpioDevice):
       self.config(["out"])
     print "GPIO.output(%d,%d)" % (self.bcmId, int(value))
     GPIO.output(self.bcmId,int(value))
+    self.rpiScratchIO.scratchHandler.scratchConnection.sensorupdate({self.deviceName:value})
 
   #-----------------------------
 
   def gpioCallBack(self,channelId):
     # Update the value
-    self.rpiScratchIO.scratchHandler.scratchConnection.sensorupdate({self.deviceName:value})
+    self.read(0) # There is only one channel in this GPIO object
     
     # Broadcast message to Scratch
-    self.rpiScratchIO.scratchHandler.scratchConnection.broadcast(self.deviceName + ":trig")
+    broadcast_msg="%s:trig" % self.deviceName
+    print broadcast_msg
+    self.rpiScratchIO.scratchHandler.scratchConnection.broadcast(broadcast_msg)
 
 #=====================================
 

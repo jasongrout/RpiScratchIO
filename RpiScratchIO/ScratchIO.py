@@ -96,6 +96,7 @@ class ScratchIO:
 
     # Set GPIO mode
     GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
 
     # Now create each device object and add them to the devices dict.
     for device in deviceTypes.keys():

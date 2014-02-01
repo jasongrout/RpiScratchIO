@@ -42,14 +42,14 @@ class ScratchHandler:
   #-----------------------------------------
 
   def clientThread(self):
-    deviceNames = self.__rpiScratchIO.devices.keys()
+    self.deviceNames = self.__rpiScratchIO.devices.keys()
     while not self.shutdown_flag:
       try:
         msg = self.scratchConnection.receive()
         if msg[0] == 'broadcast':
-          __parseBroadcast(msg[1])
+          self.__parseBroadcast(msg[1])
         elif msg[0] == 'sensor-update':
-          __parseSensorUpdate(msg[1])
+          self.__parseSensorUpdate(msg[1])
         else:
           continue
       except scratch.ScratchError:
@@ -69,7 +69,7 @@ class ScratchHandler:
     if not ":" in cmd:
       return None
 
-    frags = string.split(cmd,':',1)
+    frags = string.split(cmd,':',3)
     
     # If the command is not formulated correctly, ignore it.
     # Commands must be: "deviceName:functionName:args"
@@ -79,12 +79,14 @@ class ScratchHandler:
 
     deviceName = frags[0]
     functionName = frags[1]
-    bool hasArguments = False
+    hasArguments = False
     if len(frags) == 3:
       arguments = frags[2]
       hasArguments = True
     else:
       arguments = "None"
+
+    print "frags=%s" % frags
 
     # The device must be available.
     # (Ignore this without a warning message, since it might be a broadcast for another client.)
@@ -94,7 +96,7 @@ class ScratchHandler:
     # The function must be available
     if not functionName in self.availableFunctions:
       print("WARNING: function name \"%s\" not available.  Available function names:" % functionName)
-      for availableFunction in availableFunctions:
+      for availableFunction in self.availableFunctions:
         print(availableFunction)
       return None
 
@@ -135,16 +137,27 @@ class ScratchHandler:
       if nargs == 0:
         print("WARNING: \"config\" expects at least one argument.  No arguments were given")
         return None
-      else
+      else:
         self.__rpiScratchIO.devices[deviceName].config(argList)
 
   #-----------------------------------------
 
   def __parseSensorUpdate(self,cmd):
-    cmd = msg[1]
+    print "cmd = %s" % cmd
+
+    # The GPIO bcm pins are special and correspond to one channel only.
+    # Other devices with one channel, should be allowed to assume channel 0.
+    if not ":" in cmd:
+      deviceName = cmd
+      channelId = "0"
+    else:
+      frags = string.split(cmd,":")
+      deviceName = frags[0]
+      channelId = frags[1]
+
     for deviceName in cmd.keys():
       # Could be some other global variable.
       # Therefore, should not throw an error, but just ignore the change.
-      if not deviceName in deviceNames:
+      if not deviceName in self.deviceNames:
         return None
-      self.__rpiScratchIO.devices[deviceName].write(cmd[deviceName])
+      self.__rpiScratchIO.devices[deviceName].write(channelId,cmd[deviceName])
