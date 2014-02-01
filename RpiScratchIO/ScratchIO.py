@@ -5,29 +5,42 @@ from ScratchHandler import ScratchHandler
 from RpiGpioConnections import RpiGpioConnections
 from Devices import *
 
-class RpiScratchIO:
+class ScratchIO:
   __instanceCounter = 0
 
   def __init__(self,configFile="None"):
-    if RpiScratchIO.__instanceCounter > 0:
+
+    # Use a default configuration name, if none is provided
+    if configFile == "None":
+      configFile = "RpiScratchIO.cfg"
+
+    # Prevent more than one instance of this class from being created
+    if ScratchIO.__instanceCounter > 0:
       raise Exception("Error: can only create one instance of RpiScratchIO")
-    RpiScratchIO.__instanceCounter = 1
- 
-    self.config = None
+    ScratchIO.__instanceCounter = 1
 
-    # Check if the file exists
-    if os.path.isfile(configFile):
+    # Check if the configuration file exists
+    if not os.path.isfile(configFile):
+      raise Exception("Error: configuration file %s not found" % configFile)
 
-      # Read the configuration file
-      self.config = ConfigParser.RawConfigParser()
-      self.config.optionxform = str # case sensitive keys
-      self.config.read(configFile)
+    # Read the configuration file
+    self.config = ConfigParser.RawConfigParser()
+    self.config.optionxform = str # case sensitive keys
+    self.config.read(configFile)
 
+    # Create a RpiGpioConnections object, to check the configuration file
     self.rpiGpioConnections = RpiGpioConnections()
+
+    # Connect to Scratch
     self.scratchHandler = ScratchHandler(self)
 
+    # Create an empty devices dict to store the device objects
     self.devices = {}
+
+    # Parse the input configuration file
     self.__parseConfiguration()
+
+    # This is for debugging
     print " >> Printing the device connections:"
     self.rpiGpioConnections.printConnections()
 
@@ -108,4 +121,4 @@ class RpiScratchIO:
 
   #----------------------------------------------
   def __del__(self):
-    RpiScratchIO.__instanceCounter = 0
+    ScratchIO.__instanceCounter = 0
