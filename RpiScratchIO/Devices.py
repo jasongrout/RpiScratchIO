@@ -43,14 +43,31 @@ class GenericDevice(object):
   """Check if the channel number is in the list of available input
   channel numbers."""
   def validInputChannel(self,channelId):
-    if not channel in self.inputChannels:
-      print("WARNING: \"%s\" does not have an input channel number %d" % self.deviceName, channel)
+    try:
+      channelNumber = int(channelId)
+    except ValueError:
+      print("WARNING: \"%s\" is not a channel number", channelId)
+      return -1
+
+    if not channelNumber in self.inputChannels:
+      print("WARNING: \"%s\" does not have an input channel number %d" % self.deviceName, channelNumber)
+      return -1
+
+    return channelNumber
+
 
   """Check if the channel number is in the list of available output
   channel numbers."""
   def validOutputChannel(self,channelId):
-    if not channel in self.outputChannels:
-      print("WARNING: \"%s\" does not have an output channel number %d" % self.deviceName, channel)
+    try:
+      channelNumber = int(channelId)
+    except ValueError:
+      print("WARNING: \"%s\" is not a channel number", channelId)
+      return -1
+
+    if not channelNumber in self.outputChannels:
+      print("WARNING: \"%s\" does not have an output channel number %d" % self.deviceName, channelNumber)
+      return -1
 
   #-----------------------------
 
@@ -193,6 +210,7 @@ class FileConnection(GenericDevice):
 
   def __init__(self,deviceName_,rpiScratchIO_,connections_):
     super(FileConnection, self).__init__(deviceName_,rpiScratchIO_,connections_)
+    self.rpiScratchIO.scratchHandler.scratchConnection.sensorupdate({self.deviceName:0}) # Add to Scratch
 
   #-----------------------------
 
@@ -201,14 +219,14 @@ class FileConnection(GenericDevice):
       return None
     self.file = open(self.connections[0], options)
     if options.find("w"):
-      self.write = True
-      self.read = False
+      self.writeMode = True
+      self.readMode = False
     if options.find("r+"):
-      self.write = True
-      self.read = True
+      self.writeMode = True
+      self.readMode = True
     else:
-      self.write = False
-      self.read = True
+      self.writeMode = False
+      self.readMode = True
     self.configured = True
 
   #-----------------------------  
@@ -216,17 +234,20 @@ class FileConnection(GenericDevice):
   def read(self,channelId):
     if not self.configured: # Use default read option
       self.config('r')
-    if not self.read:
-      raise Exception("File is open for output only")
+    if not self.readMode:
+      print("WARNING: file %s is open for output only." % self.connections[0])
+      return None
+    print("WARNING: not currently implemented.")
 
   #-----------------------------
 
   def write(self,channelId,value):
     if not self.configured: # Use default write option
       self.config('w')
-    if not self.write:
-      raise Exception("File is open for input only") 
-    self.file.write(value)
+    if not self.writeMode:
+      print("WARNING: file %s is open for input only." % self.connections[0]) 
+      return None
+    self.file.write(value+"\n")
 
   #-----------------------------
 
@@ -246,12 +267,16 @@ class MCP3008(SpiDevice):
 
   #-----------------------------
 
-  def read(self,channelNumber):
-    if not self.validInputChannel(channelNumber):
+  def read(self,channelId):
+    print "read, channelId = %s" % channelId
+    
+    channelNumber = self.validInputChannel(channelId)
+    if channelNumber == -1:
       return None
-    r = self._spi.xfer2([1,(8+channelNumber)<<4,0])
-    print "read=%s" % r
-    value = ((r[1]&3) << 8) + r[2]
+    msg = self.spi.xfer2([1,(8+channelNumber)<<4,0])
+    print "read=%s" % msg
+    adc_counts = ((msg[1]&3) << 8) + msg[2]
+    voltage = round(adc_counts*3.3 / 1023,3)
     sensorName = "%s:%d" % (self.deviceName,channelNumber)
-    self.rpiScratchIO.scratchHandler.scratchConnection.sensorupdate({sensorName:value})
+    self.rpiScratchIO.scratchHandler.scratchConnection.sensorupdate({sensorName:voltage})
 
