@@ -124,9 +124,9 @@ class ScratchHandler:
         return None
       elif nargs == 1:
         # Assume channel zero should be used
-        print deviceName
-        print self.__rpiScratchIO.devices[deviceName]
-        print argList
+        #print deviceName
+        #print self.__rpiScratchIO.devices[deviceName]
+        #print argList
         self.__rpiScratchIO.devices[deviceName].write("0",argList[0])
       elif nargs == 2:
         self.__rpiScratchIO.devices[deviceName].write(argList[0],argList[1])

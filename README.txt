@@ -10,8 +10,10 @@ RpiScratchIO script or via::
 
     #!/usr/bin/env python
 
+    import time
+    import RpiScratchIO
     from RpiScratchIO import ScratchIO
-    s = ScratchIO("myConfig.cfg")
+    s = ScratchIO.ScratchIO("myConfig.cfg")
     try:
       while 1:
         time.sleep(1000)

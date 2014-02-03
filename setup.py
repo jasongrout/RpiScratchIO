@@ -21,10 +21,21 @@ THE SOFTWARE.
 """
 
 from distutils.core import setup
+from setuptools import setup
+
+classifiers = ['Development Status :: 3 - Alpha',
+               'Operating System :: POSIX :: Linux',
+               'License :: OSI Approved :: MIT License',
+               'Intended Audience :: Developers',
+               'Programming Language :: Python :: 2.6',
+               'Programming Language :: Python :: 2.7',
+               'Topic :: Software Development',
+               'Topic :: Home Automation',
+               'Topic :: System :: Hardware']
 
 setup(
     name='RpiScratchIO',
-    version='0.1.0',
+    version='0.1.3',
     author='W. H. Bell',
     author_email='whbqcd1@gmail.com',
     packages=['RpiScratchIO'],
@@ -33,8 +44,10 @@ setup(
     license='MIT',
     description='Easy expansion of Raspberry Pi I/O within Scratch',
     long_description=open('README.txt').read(),
+    keywords='Raspberry Pi GPIO Scratch',
+    classifiers=classifiers,
     install_requires=[
-        "scratchpi == 0.1.0",
+        "scratchpy == 0.1.0",
         "spidev == 2.0",
         "RPi.GPIO >= 0.5.4",
     ],

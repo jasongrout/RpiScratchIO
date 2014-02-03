@@ -55,12 +55,12 @@ class ScratchIO:
       raise Exception("ERROR: %s contains no device definitions" % configFile)
 
     # Convert list of pairs to dict and append
-    print self.config.items("DeviceTypes")
+    #print self.config.items("DeviceTypes")
     deviceTypes = {}
     deviceConnections = {}
     for device, className in self.config.items("DeviceTypes"):
-      print device
-      print className
+      #print device
+      #print className
       if device in deviceTypes.keys():
         raise Exception("ERROR: %s has already been defined in %s" % (device % configFile))
 
@@ -79,10 +79,10 @@ class ScratchIO:
     # This is optional and not needed if all of the DeviceType
     # declarations are BCM ids
     if self.config.has_section("DeviceConnections"):
-      print self.config.items("DeviceConnections")
+      #print self.config.items("DeviceConnections")
       for device, connections in self.config.items("DeviceConnections"):
-        print device
-        print connections
+        #print device
+        #print connections
         connections.replace(' ','') # Remove any spaces
         connections.replace('\t','') # Remove any tab characters
         deviceConnections[device] = string.split(connections,',')
@@ -90,8 +90,8 @@ class ScratchIO:
     # Now check if all of the devices have connections.
     for device in deviceTypes.keys():
       if not device in deviceConnections.keys():
-        print device
-        print deviceConnections.keys()
+        #print device
+        #print deviceConnections.keys()
         raise Exception("ERROR: device %s has no connections listed" % device)
 
     # Set GPIO mode

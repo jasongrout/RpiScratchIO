@@ -85,7 +85,7 @@ class GenericDevice(object):
         sensorValues[self.deviceName+":"+str(channelId)] = 0
 
       # Tell scratch about all of the input channels in one message.
-      print sensorValues
+      #print sensorValues
       self.rpiScratchIO.scratchHandler.scratchConnection.sensorupdate(sensorValues)
         
 #=====================================
@@ -119,7 +119,7 @@ class SimpleGpio(GpioDevice):
       print("WARNING: \"config\" expects at least one argument.  No arguments were given")
       return None
       
-    print "config %s" % argList
+    #print "config %s" % argList
 
     if argList[0] == "in":
       if nargs == 1:
@@ -163,7 +163,7 @@ class SimpleGpio(GpioDevice):
   def write(self,channelId,value): # to add this
     if not self.configured: # use the default options 
       self.config(["out"])
-    print "GPIO.output(%d,%d)" % (self.bcmId, int(value))
+    #print "GPIO.output(%d,%d)" % (self.bcmId, int(value))
     GPIO.output(self.bcmId,int(value))
     self.rpiScratchIO.scratchHandler.scratchConnection.sensorupdate({self.deviceName:value})
 
@@ -175,7 +175,7 @@ class SimpleGpio(GpioDevice):
     
     # Broadcast message to Scratch
     broadcast_msg="%s:trig" % self.deviceName
-    print broadcast_msg
+    #print broadcast_msg
     self.rpiScratchIO.scratchHandler.scratchConnection.broadcast(broadcast_msg)
 
 #=====================================
@@ -268,13 +268,13 @@ class MCP3008(SpiDevice):
   #-----------------------------
 
   def read(self,channelId):
-    print "read, channelId = %s" % channelId
+    #print "read, channelId = %s" % channelId
     
     channelNumber = self.validInputChannel(channelId)
     if channelNumber == -1:
       return None
     msg = self.spi.xfer2([1,(8+channelNumber)<<4,0])
-    print "read=%s" % msg
+    #print "read=%s" % msg
     adc_counts = ((msg[1]&3) << 8) + msg[2]
     voltage = round(adc_counts*3.3 / 1023,3)
     sensorName = "%s:%d" % (self.deviceName,channelNumber)
