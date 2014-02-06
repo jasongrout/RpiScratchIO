@@ -35,7 +35,7 @@ classifiers = ['Development Status :: 3 - Alpha',
 
 setup(
     name='RpiScratchIO',
-    version='0.1.3',
+    version='0.1.4',
     author='W. H. Bell',
     author_email='whbqcd1@gmail.com',
     packages=['RpiScratchIO'],

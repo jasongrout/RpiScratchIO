@@ -80,14 +80,36 @@ class GenericDevice(object):
     if len(self.inputChannels) == 1:
       sensorValues[self.deviceName] = 0
     else:
-      sensorValues = {}
       for channelId in self.inputChannels:
         sensorValues[self.deviceName+":"+str(channelId)] = 0
 
-      # Tell scratch about all of the input channels in one message.
+      # Tell Scratch about all of the input channels in one message.
       #print sensorValues
       self.rpiScratchIO.scratchHandler.scratchConnection.sensorupdate(sensorValues)
-        
+
+  #-----------------------------
+
+  """Update sensor value in Scratch"""
+  def updateSensor(self,channelId,value):
+    if not isinstance(value, (int, long, float)):
+      print("WARNING: device \"%s\" attempted to send \"%s\" to a Scratch.  This is not a number and was ignored" % self.deviceName, value)
+      return None
+
+    sensorValues = {}
+    if len(self.inputChannels) == 1:
+      sensorValues[self.deviceName] = value
+    else:
+      sensorValues[self.deviceName+":"+str(channelId)] = value
+
+    # Tell Scratch about this sensor value
+    self.rpiScratchIO.scratchHandler.scratchConnection.sensorupdate(sensorValues)
+
+  #-----------------------------
+
+  """Send a broadcast message to Scratch in a standard form for a trigger"""
+  def broadcastTrigger(self,channelId):
+    print "FIX ME!"
+
 #=====================================
 
 class GpioDevice(GenericDevice):
@@ -109,7 +131,8 @@ class SimpleGpio(GpioDevice):
   def __init__(self,deviceName_,rpiScratchIO_,connections_):
     super(SimpleGpio, self).__init__(deviceName_,rpiScratchIO_,connections_)
     self.bcmId = int(string.replace(self.connections[0],'GPIO',''))
-    self.rpiScratchIO.scratchHandler.scratchConnection.sensorupdate({self.deviceName:0}) # Add to Scratch
+    self.inputChannels += [0] # Has just one channel
+    self.addSensors() # Add to Scratch
 
   #-----------------------------
 
@@ -156,7 +179,7 @@ class SimpleGpio(GpioDevice):
     if not self.configured: # use the default options
       self.config(["in"])
     value = int(GPIO.input(self.bcmId))
-    self.rpiScratchIO.scratchHandler.scratchConnection.sensorupdate({self.deviceName:value})
+    self.updateSensor(channelId,value)
 
   #-----------------------------
 
@@ -165,7 +188,7 @@ class SimpleGpio(GpioDevice):
       self.config(["out"])
     #print "GPIO.output(%d,%d)" % (self.bcmId, int(value))
     GPIO.output(self.bcmId,int(value))
-    self.rpiScratchIO.scratchHandler.scratchConnection.sensorupdate({self.deviceName:value})
+    self.updateSensor(channelId,value)
 
   #-----------------------------
 
@@ -210,7 +233,8 @@ class FileConnection(GenericDevice):
 
   def __init__(self,deviceName_,rpiScratchIO_,connections_):
     super(FileConnection, self).__init__(deviceName_,rpiScratchIO_,connections_)
-    self.rpiScratchIO.scratchHandler.scratchConnection.sensorupdate({self.deviceName:0}) # Add to Scratch
+    self.inputChannels += [0] # One channel per file
+    self.addSensors() # Add to Scratch
 
   #-----------------------------
 
@@ -256,27 +280,3 @@ class FileConnection(GenericDevice):
       self.file.close()
 
 #=====================================
-
-# For the chip of the same name
-class MCP3008(SpiDevice):
-
-  def __init__(self,deviceName_,rpiScratchIO_,connections_):
-    super(MCP3008, self).__init__(deviceName_,rpiScratchIO_,connections_)
-    for i in xrange(8):
-      self.inputChannels += [i]
-
-  #-----------------------------
-
-  def read(self,channelId):
-    #print "read, channelId = %s" % channelId
-    
-    channelNumber = self.validInputChannel(channelId)
-    if channelNumber == -1:
-      return None
-    msg = self.spi.xfer2([1,(8+channelNumber)<<4,0])
-    #print "read=%s" % msg
-    adc_counts = ((msg[1]&3) << 8) + msg[2]
-    voltage = round(adc_counts*3.3 / 1023,3)
-    sensorName = "%s:%d" % (self.deviceName,channelNumber)
-    self.rpiScratchIO.scratchHandler.scratchConnection.sensorupdate({sensorName:voltage})
-
