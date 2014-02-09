@@ -55,6 +55,7 @@ class GenericDevice(object):
 
     return channelNumber
 
+  #-----------------------------
 
   """Check if the channel number is in the list of available output
   channel numbers."""
@@ -69,13 +70,17 @@ class GenericDevice(object):
       print("WARNING: \"%s\" does not have an output channel number %d" % self.deviceName, channelNumber)
       return -1
 
+    return channelNumber
+
+  #-----------------------------
+
   """Check if the value is a number"""
-  def isNumber(self,value,requireInt="False"):
+  def isNumber(self,value,requireInt=False):
     if not isinstance(value, (int, long, float)):
-      print("WARNING: \"%s"\" is not a number.  Device \"%s\" expects a numerical value" % (value,self.deviceName))
+      print("WARNING: \"%s\" is not a number.  Device \"%s\" expects a numerical value" % (value,self.deviceName))
       return False
     if requireInt and not isinstance(value, (int, long)):
-      print("WARNING: \"%s"\" is not an integer.  Device \"%s\" expects an integer value" % (value,self.deviceName))
+      print("WARNING: \"%s\" is not an integer.  Device \"%s\" expects an integer value" % (value,self.deviceName))
       return False
     return True
 

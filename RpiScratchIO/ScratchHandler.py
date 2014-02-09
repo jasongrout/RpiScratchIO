@@ -69,11 +69,13 @@ class ScratchHandler:
     if not ":" in cmd:
       return None
 
+    print cmd
+
     frags = string.split(cmd,':',3)
     
     # If the command is not formulated correctly, ignore it.
     # Commands must be: "deviceName:functionName:args"
-    # Allow GPIO23:READ without arguments
+    # Allow GPIO23:read without arguments
     if len(frags) != 2 and len(frags) != 3:
       return None
 
@@ -89,6 +91,7 @@ class ScratchHandler:
     # The device must be available.
     # (Ignore this without a warning message, since it might be a broadcast for another client.)
     if not deviceName in self.deviceNames:
+      print("WARNING: \"%s\" is not in the list of device names" % deviceName)
       return None
 
     # The function must be available

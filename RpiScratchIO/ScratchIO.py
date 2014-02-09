@@ -3,7 +3,10 @@ import ConfigParser
 import RPi.GPIO as GPIO
 from ScratchHandler import ScratchHandler
 from RpiGpioConnections import RpiGpioConnections
+
 from Devices import *
+from SpiDevices import *
+from UsbDevices import *
 
 class ScratchIO:
   __instanceCounter = 0

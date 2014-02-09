@@ -1,5 +1,5 @@
 import usb.core
-
+from Devices import GenericDevice
 
 #=====================================
 
@@ -12,9 +12,9 @@ class MaplinArm(GenericDevice):
     super(MaplinArm, self).__init__(deviceName_,rpiScratchIO_,connections_)
 
     # Connect to the USB device or throw an exception
-    self.usbDevice = usb.core.find(idVendor=0x1267,idProduct=0x0000)
-    if self.usbDevice is None:
-      raise Exception("ERROR: Maplin robotic arm not found")
+    #self.usbDevice = usb.core.find(idVendor=0x1267,idProduct=0x0000)
+    #if self.usbDevice is None:
+    #  raise Exception("ERROR: Maplin robotic arm not found")
 
     # Define a dictionary to contain the movements
     # TODO: need to use a bit mask, to allow more than one motion at once.
@@ -40,22 +40,23 @@ class MaplinArm(GenericDevice):
   #-----------------------------
 
   def write(self,channelId,value):
-    
+
+    print "Calling write"
+
     # Check if this is a valid input channelId
     channelNumber = self.validOutputChannel(channelId)
     if channelNumber == -1:
       return None
     
     # Check if the value is an integer
-    if not isNumber(self,value,requireInt=True):
+    try:
+      intValue = int(value)
+    except ValueError:
       return None
-
-    # Convert to an integer
-    intValue = int(value)     
  
     # Catch value errors
     validValues = self.motorDict[channelNumber].keys()
-    if intValue not
+    if not intValue in validValues:
       print("WARNING: the value \"%d\" for channel \"%d\" of device \"%s\" is out of range" % (intValue, channelNumber, self.deviceName))
       print("         Allowed values are: %s" % validValues)
 
@@ -63,7 +64,7 @@ class MaplinArm(GenericDevice):
     if intValue == 0:
       self.__setChannelOff(channelNumber)
     else:
-      self.__setChannelStatus(channelNumber,value)
+      self.__setChannelStatus(channelNumber,intValue)
 
     # Send the value back to Scratch
     #self.updateSensor(channelId, voltage)
@@ -78,7 +79,7 @@ class MaplinArm(GenericDevice):
     # running.  Therefore, use a mask to just
     # turn off affected bits.
     motorChannel = self.motorDict[channelNumber] # Possible settings for this channel
-    for intValue in motorChannel.keys() # Value settings
+    for intValue in motorChannel.keys(): # Value settings
       settings = motorChannel[intValue] # The list of settings
       for bitIndex in xrange(3): # Positions in the list
         
@@ -111,6 +112,8 @@ class MaplinArm(GenericDevice):
   #-----------------------------
 
   def __setChannelStatus(self,channelNumber,intValue):
+    updateNeeded = False
+
     motorChannel = self.motorDict[channelNumber] # Possible settings for this channel
     settings = motorChannel[intValue] # The list of bits
     for bitIndex in xrange(3): # Positions in the list
@@ -124,6 +127,13 @@ class MaplinArm(GenericDevice):
         if self.currentMotorCmd[bitIndex] & settings[bitIndex] == settings[bitIndex]:
           continue
 
-        # Now need to update here...
+        # Now update the current command, adding the new bit
+        # (Other bits are not affected)
+        self.currentMotorCmd[bitIndex] = self.currentMotorCmd[bitIndex] | settings[bitIndex]
+        updateNeeded = True
+
+    if updateNeeded:
+      print "Update:"
+      print self.currentMotorCmd
 
 #=====================================
