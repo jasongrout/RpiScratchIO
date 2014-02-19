@@ -6,7 +6,7 @@ from RpiGpioConnections import RpiGpioConnections
 
 from Devices import *
 from SpiDevices import *
-from UsbDevices import *
+#from UsbDevices import *
 
 class ScratchIO:
   __instanceCounter = 0
@@ -107,10 +107,33 @@ class ScratchIO:
       # Build the basic arguments string
       basicArguments = "'%s',self,%s" % (device,deviceConnections[device])
 
+      # Look for the last bracket
+      objStr = deviceTypes[device]
+      print objStr   
+ 
+      parPos = str.rfind(objStr,"(")
+      parPosClose = str.rfind(objStr,")")
+      if parPos == -1 or parPosClose <= parPos:
+        raise Exception("ERROR: %s must create a class, e.g. MCP3008()" % deviceTypes[device])
+
       # Prepend the basic arguments, in front of any optional arguments
-      objStr = string.replace(deviceTypes[device],"(","("+basicArguments)
+      # that are given to the class constructor
+      objStr = objStr[0:parPos+1] + basicArguments + objStr[parPos+1:]
+
       print objStr
-      exec "deviceObj = %s" % objStr
+ 
+      # Find the semi-colon before the class instantiation
+      semiColonPos = str.rfind(objStr,";",0,parPos)
+
+      # Add the name of the object in front of the class constructor call
+      if semiColonPos == -1:
+        objStr = "deviceObj = " + objStr
+      else:
+        objStr = objStr[0:semiColonPos+1] + " deviceObj = " + objStr[semiColonPos+1:]
+
+      print objStr
+
+      exec "%s" % objStr
       deviceObj.addSensors() # Tell Scratch about the input channels
       self.devices[device] = deviceObj
 
