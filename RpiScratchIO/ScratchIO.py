@@ -32,7 +32,7 @@ class ScratchIO:
     self.config.read(configFile)
 
     # Create a RpiGpioConnections object, to check the configuration file
-    self.rpiGpioConnections = RpiGpioConnections()
+    self.connections = Connections()
 
     # Connect to Scratch
     self.scratchHandler = ScratchHandler(self)
@@ -45,7 +45,7 @@ class ScratchIO:
 
     # This is for debugging
     print " >> Printing the device connections:"
-    self.rpiGpioConnections.printConnections()
+    self.connections.printConnections()
 
     # Start the Scratch listening thread
     self.scratchHandler.listen()

@@ -5,8 +5,8 @@ class ScratchHandler:
 
   #-----------------------------------------
 
-  def __init__(self, rpiScratchIO_):
-    self.__rpiScratchIO = rpiScratchIO_
+  def __init__(self, scratchIO_):
+    self.__scratchIO = scratchIO_
 
     # Functions that can be parsed
     self.availableFunctions = ['config','read','write']
@@ -18,10 +18,10 @@ class ScratchHandler:
 
     # If the connection setting are given in the configuration file,
     # then update them.
-    if self.__rpiScratchIO.config != None:
-      if self.__rpiScratchIO.config.has_section("ScratchConnection"):
-        host = self.__rpiScratchIO.config.get("ScratchConnection","host")
-        port = self.__rpiScratchIO.config.getint("ScratchConnection","port")
+    if self.__scratchIO.config != None:
+      if self.__scratchIO.config.has_section("ScratchConnection"):
+        host = self.__scratchIO.config.get("ScratchConnection","host")
+        port = self.__scratchIO.config.getint("ScratchConnection","port")
 
     # Open a Scratch connection.
     print " >> Connecting to Scratch on %s using port %d" % (host, port)
@@ -42,7 +42,7 @@ class ScratchHandler:
   #-----------------------------------------
 
   def clientThread(self):
-    self.deviceNames = self.__rpiScratchIO.devices.keys()
+    self.deviceNames = self.__scratchIO.devices.keys()
     while not self.shutdown_flag:
       try:
         msg = self.scratchConnection.receive()
@@ -113,10 +113,13 @@ class ScratchHandler:
 
     # Now call the appropriate function
     if functionName == 'read':
+      # If no channel has been given, use zero
       if nargs == 0:
-        self.__rpiScratchIO.devices[deviceName].read()
+        self.__scratchIO.devices[deviceName].read('0')
+      # otherwise, use the channel number
       elif nargs == 1:
-        self.__rpiScratchIO.devices[deviceName].read(argList[0])
+        self.__scratchIO.devices[deviceName].read(argList[0])
+      # Or harmlessly report a warning
       else:
         print("WARNING: \"read\" expects zero or one arguments.  %d arguments were given" % nargs)
         return None
@@ -128,11 +131,11 @@ class ScratchHandler:
       elif nargs == 1:
         # Assume channel zero should be used
         #print deviceName
-        #print self.__rpiScratchIO.devices[deviceName]
+        #print self.__scratchIO.devices[deviceName]
         #print argList
-        self.__rpiScratchIO.devices[deviceName].write("0",argList[0])
+        self.__scratchIO.devices[deviceName].write("0",argList[0])
       elif nargs == 2:
-        self.__rpiScratchIO.devices[deviceName].write(argList[0],argList[1])
+        self.__scratchIO.devices[deviceName].write(argList[0],argList[1])
       else:
         print("WARNING: \"write\" expects one or two arguments.  %d arguments were given" % nargs)
         return None
@@ -142,7 +145,7 @@ class ScratchHandler:
         print("WARNING: \"config\" expects at least one argument.  No arguments were given")
         return None
       else:
-        self.__rpiScratchIO.devices[deviceName].config(argList)
+        self.__scratchIO.devices[deviceName].config(argList)
 
   #-----------------------------------------
 
@@ -163,4 +166,4 @@ class ScratchHandler:
       # Therefore, should not throw an error, but just ignore the change.
       if not deviceName in self.deviceNames:
         return None
-      self.__rpiScratchIO.devices[deviceName].write(channelId,cmd[deviceName])
+      self.__scratchIO.devices[deviceName].write(channelId,cmd[deviceName])

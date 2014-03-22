@@ -5,12 +5,12 @@ import RPi.GPIO as GPIO
 
 class GenericDevice(object):
 
-  def __init__(self,deviceName_,rpiScratchIO_,connections_):
+  def __init__(self,deviceName_,scratchIO_,connections_):
     self.deviceName = deviceName_
     self.inputChannels = []
     self.outputChannels = []
     self.configured = False
-    self.rpiScratchIO = rpiScratchIO_
+    self.scratchIO = scratchIO_
     self.connections = connections_
 
   #-----------------------------
@@ -40,37 +40,32 @@ class GenericDevice(object):
 
   #-----------------------------
 
-  """Check if the channel number is in the list of available input
-  channel numbers."""
-  def validInputChannel(self,channelId):
+  def __validChannel(self,channelList,inputType,channelId):
     try:
       channelNumber = int(channelId)
     except ValueError:
-      print("WARNING: \"%s\" is not a channel number", channelId)
+      print("WARNING: \"%s\" is not a channel number for device \"%s\"" % (channelId, self.deviceName))
       return -1
 
-    if not channelNumber in self.inputChannels:
-      print("WARNING: \"%s\" does not have an input channel number %d" % self.deviceName, channelNumber)
+    if not channelNumber in channelList:
+      print("WARNING: \"%s\" does not have an %s channel number %d" % (self.deviceName, inputType, channelNumber))
       return -1
 
     return channelNumber
 
   #-----------------------------
 
+  """Check if the channel number is in the list of available input
+  channel numbers."""
+  def validInputChannel(self,channelId):
+    return self.__validChannel(self.inputChannels,"input",channelId)
+
+  #-----------------------------
+
   """Check if the channel number is in the list of available output
   channel numbers."""
   def validOutputChannel(self,channelId):
-    try:
-      channelNumber = int(channelId)
-    except ValueError:
-      print("WARNING: \"%s\" is not a channel number", channelId)
-      return -1
-
-    if not channelNumber in self.outputChannels:
-      print("WARNING: \"%s\" does not have an output channel number %d" % self.deviceName, channelNumber)
-      return -1
-
-    return channelNumber
+    return self.__validChannel(self.outputChannels,"output",channelId)
 
   #-----------------------------
 
@@ -84,6 +79,15 @@ class GenericDevice(object):
       return False
     return True
 
+  #-----------------------------
+
+  """Standard names for sensors"""
+  def sensorName(self,channelId):
+    if len(self.inputChannels) == 1:
+      return self.deviceName
+    else:
+      return self.deviceName+":"+str(channelId)
+  
   #-----------------------------
 
   """Announce to Scratch that the inputs exist as remote sensors"""
@@ -100,7 +104,7 @@ class GenericDevice(object):
 
       # Tell Scratch about all of the input channels in one message.
       #print sensorValues
-      self.rpiScratchIO.scratchHandler.scratchConnection.sensorupdate(sensorValues)
+      self.scratchIO.scratchHandler.scratchConnection.sensorupdate(sensorValues)
 
   #-----------------------------
 
@@ -110,41 +114,44 @@ class GenericDevice(object):
       print("WARNING: device \"%s\" attempted to send \"%s\" to a Scratch.  This is not a number and was ignored" % self.deviceName, value)
       return None
 
+    # Create a dict, with the sensor that needs to be updated as the
+    # key and the value as the value for the given sensor.
     sensorValues = {}
-    if len(self.inputChannels) == 1:
-      sensorValues[self.deviceName] = value
-    else:
-      sensorValues[self.deviceName+":"+str(channelId)] = value
+    sensorValues[self.sensorName(channelId)] = value
 
     # Tell Scratch about this sensor value
-    self.rpiScratchIO.scratchHandler.scratchConnection.sensorupdate(sensorValues)
+    self.scratchIO.scratchHandler.scratchConnection.sensorupdate(sensorValues)
 
   #-----------------------------
 
   """Send a broadcast message to Scratch in a standard form for a trigger"""
   def broadcastTrigger(self,channelId):
-    print "FIX ME!"
+
+    # Broadcast message to Scratch
+    broadcast_msg="%s:trig" % self.sensorName(channelId)
+    #print broadcast_msg
+    self.scratchIO.scratchHandler.scratchConnection.broadcast(broadcast_msg)
 
 #=====================================
 
 class GpioDevice(GenericDevice):
 
-  def __init__(self,deviceName_,rpiScratchIO_,connections_):
-    super(GpioDevice, self).__init__(deviceName_,rpiScratchIO_,connections_)
-    self.rpiScratchIO.rpiGpioConnections.requestGpioIds(self.deviceName,self.connections)
+  def __init__(self,deviceName_,scratchIO_,connections_):
+    super(GpioDevice, self).__init__(deviceName_,scratchIO_,connections_)
+    self.scratchIO.connections.requestGpioIds(self.deviceName,self.connections)
 
   #-----------------------------
 
   def cleanup(self):
     if self.configured:
-      self.rpiScratchIO.gpioCleanUp = True
+      self.scratchIO.gpioCleanUp = True
 
 #=====================================
 
 class SimpleGpio(GpioDevice):
 
-  def __init__(self,deviceName_,rpiScratchIO_,connections_):
-    super(SimpleGpio, self).__init__(deviceName_,rpiScratchIO_,connections_)
+  def __init__(self,deviceName_,scratchIO_,connections_):
+    super(SimpleGpio, self).__init__(deviceName_,scratchIO_,connections_)
     self.bcmId = int(string.replace(self.connections[0],'GPIO',''))
     self.inputChannels += [0] # Has just one channel
     self.addSensors() # Add to Scratch
@@ -206,27 +213,27 @@ class SimpleGpio(GpioDevice):
     self.updateSensor(channelId,value)
 
   #-----------------------------
+  
+  def gpioCallBack(self,bcmId):
 
-  def gpioCallBack(self,channelId):
-    # Update the value
-    self.read(0) # There is only one channel in this GPIO object
+    # Update the Scratch sensor value.  (The channel id is 0, since
+    # there is only one channel for this bcmId.)
+    self.read(0)
     
-    # Broadcast message to Scratch
-    broadcast_msg="%s:trig" % self.deviceName
-    #print broadcast_msg
-    self.rpiScratchIO.scratchHandler.scratchConnection.broadcast(broadcast_msg)
+    # Broadcast the trigger message to Scratch.
+    self.broadcastTrigger(self,0)
 
 #=====================================
 
 class SpiDevice(GpioDevice):
 
-  def __init__(self,deviceName_,rpiScratchIO_,connections_):
-    super(SpiDevice, self).__init__(deviceName_,rpiScratchIO_,connections_)
-    if len(self.connections) != 1:
+  def __init__(self,deviceName_,scratchIO_,connections_):
+    super(SpiDevice, self).__init__(deviceName_,scratchIO_,spiBus_)
+    if len(self.spiBus) != 1:
       raise Exception("ERROR: SPI device %s must have one connection to SPI0 or SPI1" % self.deviceName)
-    if self.connections[0] == "SPI0":
+    if self.spiBus[0] == "SPI0":
       spiDevice = 0
-    elif self.connection[0] == "SPI1":
+    elif self.spiBus[0] == "SPI1":
       spiDevice = 1
     else:
       raise Exception("ERROR: SPI device %s must have one connection to SPI0 or SPI1" % self.deviceName)
@@ -246,8 +253,8 @@ class SpiDevice(GpioDevice):
 
 class FileConnection(GenericDevice):
 
-  def __init__(self,deviceName_,rpiScratchIO_,connections_):
-    super(FileConnection, self).__init__(deviceName_,rpiScratchIO_,connections_)
+  def __init__(self,deviceName_,scratchIO_,connections_):
+    super(FileConnection, self).__init__(deviceName_,scratchIO_,connections_)
     self.inputChannels += [0] # One channel per file
     self.addSensors() # Add to Scratch
 

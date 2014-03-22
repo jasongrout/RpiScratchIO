@@ -5,10 +5,10 @@ from Devices import SpiDevice
 # For the chip of the same name
 class MCP3008(SpiDevice):
 
-  def __init__(self,deviceName_,rpiScratchIO_,connections_):
+  def __init__(self,deviceName_,scratchIO_,connections_):
 
     # Call the base class constructor
-    super(MCP3008, self).__init__(deviceName_,rpiScratchIO_,connections_)
+    super(MCP3008, self).__init__(deviceName_,scratchIO_,connections_)
 
     # Define the valid input channel numbers
     for i in xrange(8):
