@@ -16,7 +16,7 @@ class MCP3008(SpiDevice):
 
   #-----------------------------
 
-  def read(self,channelId):
+  def read(self,channelNumber):
     
     # Read data from SPI link
     msg = self.spi.xfer2([1,(8+channelNumber)<<4,0])
@@ -28,6 +28,6 @@ class MCP3008(SpiDevice):
     voltage = round(adc_counts*3.3 / 1023,3)
   
     # Send the value back to Scratch
-    self.updateSensor(channelId, voltage)
+    self.updateSensor(channelNumber, voltage)
 
 #=====================================

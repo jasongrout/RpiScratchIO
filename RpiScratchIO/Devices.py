@@ -239,12 +239,12 @@ class SimpleGpio(GpioDevice):
 class SpiDevice(GpioDevice):
 
   def __init__(self,deviceName_,scratchIO_,connections_):
-    super(SpiDevice, self).__init__(deviceName_,scratchIO_,spiBus_)
-    if len(self.spiBus) != 1:
+    super(SpiDevice, self).__init__(deviceName_,scratchIO_,connections_)
+    if len(self.connections) != 1:
       raise Exception("ERROR: SPI device %s must have one connection to SPI0 or SPI1" % self.deviceName)
-    if self.spiBus[0] == "SPI0":
+    if self.connections[0] == "SPI0":
       spiDevice = 0
-    elif self.spiBus[0] == "SPI1":
+    elif self.connections[0] == "SPI1":
       spiDevice = 1
     else:
       raise Exception("ERROR: SPI device %s must have one connection to SPI0 or SPI1" % self.deviceName)
@@ -266,8 +266,11 @@ class FileConnection(GenericDevice):
 
   def __init__(self,deviceName_,scratchIO_,connections_):
     super(FileConnection, self).__init__(deviceName_,scratchIO_,connections_)
-    self.inputChannels += [0] # One channel per file
 
+    # The file can be an input or output file
+    self.inputChannels += [0]
+    self.outputChannels += [0]
+  
   #-----------------------------
 
   def config(self,options):
