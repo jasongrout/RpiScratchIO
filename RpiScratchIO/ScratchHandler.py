@@ -69,7 +69,7 @@ class ScratchHandler:
     if not ":" in cmd:
       return None
 
-    print cmd
+    #print cmd
 
     frags = string.split(cmd,':',3)
     
