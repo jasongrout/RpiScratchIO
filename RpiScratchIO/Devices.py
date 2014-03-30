@@ -112,8 +112,6 @@ class GenericDevice(object):
         sensorDict[self.deviceName+":"+str(channelId)] = 0
 
     # Tell Scratch about all of the input channels in one message.
-    print "I'll get you next"
-    print sensorDict
     self.scratchIO.scratchHandler.scratchConnection.sensorupdate(sensorDict)
 
   #-----------------------------
