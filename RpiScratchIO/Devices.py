@@ -119,7 +119,7 @@ class GenericDevice(object):
   """Update sensor value in Scratch"""
   def updateSensor(self,channelNumber,value):
     if not isinstance(value, (int, long, float)):
-      print("WARNING: device \"%s\" attempted to send \"%s\" to a Scratch.  This is not a number and was ignored" % self.deviceName, value)
+      print("WARNING: device \"%s\" attempted to send \"%s\" to a Scratch.  This is not a number and was ignored" % (self.deviceName, value))
       return None
 
     # Create a dict, with the sensor that needs to be updated as the
@@ -220,8 +220,16 @@ class SimpleGpio(GpioDevice):
     if not self.configured: # use the default options 
       self.config(["out"])
     #print "GPIO.output(%d,%d)" % (self.bcmId, int(value))
-    GPIO.output(self.bcmId,int(value))
-    self.updateSensor(channelNumber,value)
+
+    # Check if the value is an integer
+    try:
+      intValue = int(value)
+    except ValueError:
+      print "WARNING: %s is not a number.  %s expects 0 or 1" % (value,self.deviceName)
+      return None
+
+    GPIO.output(self.bcmId,intValue)
+    self.updateSensor(channelNumber,intValue)
 
   #-----------------------------
   
@@ -232,7 +240,7 @@ class SimpleGpio(GpioDevice):
     self.read(0)
     
     # Broadcast the trigger message to Scratch.
-    self.broadcastTrigger(self,0)
+    self.broadcastTrigger(0)
 
 #=====================================
 
