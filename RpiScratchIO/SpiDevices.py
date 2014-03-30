@@ -14,22 +14,12 @@ class MCP3008(SpiDevice):
     for i in xrange(8):
       self.inputChannels += [i]
 
-    # Add the input channels as sensors to Scratch
-    self.addSensors()
-
   #-----------------------------
 
   def read(self,channelId):
-    #print "read, channelId = %s" % channelId
-    
-    # Check if this is a valid input channelId
-    channelNumber = self.validInputChannel(channelId)
-    if channelNumber == -1:
-      return None
     
     # Read data from SPI link
     msg = self.spi.xfer2([1,(8+channelNumber)<<4,0])
-    #print "read=%s" % msg
 
     # Unpack data into ADC counts
     adc_counts = ((msg[1]&3) << 8) + msg[2]

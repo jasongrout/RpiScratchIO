@@ -2,7 +2,7 @@ import os.path, string
 import ConfigParser
 import RPi.GPIO as GPIO
 from ScratchHandler import ScratchHandler
-from RpiGpioConnections import RpiGpioConnections
+from ConnectionsInfo import ConnectionsInfo
 
 from Devices import *
 from SpiDevices import *
@@ -31,8 +31,8 @@ class ScratchIO:
     self.config.optionxform = str # case sensitive keys
     self.config.read(configFile)
 
-    # Create a RpiGpioConnections object, to check the configuration file
-    self.connections = Connections()
+    # Create a ConnectionsInfo object, to check the configuration file
+    self.connectionsInfo = ConnectionsInfo()
 
     # Connect to Scratch
     self.scratchHandler = ScratchHandler(self)
@@ -45,7 +45,7 @@ class ScratchIO:
 
     # This is for debugging
     print " >> Printing the device connections:"
-    self.connections.printConnections()
+    self.connectionsInfo.printConnections()
 
     # Start the Scratch listening thread
     self.scratchHandler.listen()

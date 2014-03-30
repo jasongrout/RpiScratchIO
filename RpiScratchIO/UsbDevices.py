@@ -34,19 +34,10 @@ class MaplinArm(GenericDevice):
     for i in xrange(6):
       self.outputChannels += [i]
 
-    # Add the input channels as sensors to Scratch
-    #self.addSensors()
-
   #-----------------------------
 
-  def write(self,channelId,value):
-
+  def write(self,channelNumber,value):
     print "Calling write"
-
-    # Check if this is a valid input channelId
-    channelNumber = self.validOutputChannel(channelId)
-    if channelNumber == -1:
-      return None
     
     # Check if the value is an integer
     try:

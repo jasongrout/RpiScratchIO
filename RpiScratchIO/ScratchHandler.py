@@ -113,32 +113,49 @@ class ScratchHandler:
 
     # Now call the appropriate function
     if functionName == 'read':
-      # If no channel has been given, use zero
+      # If no channel has been given, use channel zero
       if nargs == 0:
-        self.__scratchIO.devices[deviceName].read('0')
+        channelStr = "0"
       # otherwise, use the channel number
       elif nargs == 1:
-        self.__scratchIO.devices[deviceName].read(argList[0])
+        channelStr = argList[0]
       # Or harmlessly report a warning
       else:
         print("WARNING: \"read\" expects zero or one arguments.  %d arguments were given" % nargs)
         return None
 
+      # Check if the channel is a valid channel for this device.
+      self.__scratchIO.devices[deviceName]
+      channelNumber = self.__scratchIO.devices[deviceName].validInputChannel(channelStr)
+      if channelNumber < 0:
+        return None
+
+      # Read from this device
+      self.__scratchIO.devices[deviceName].read(channelNumber)
+
     elif functionName == 'write':
-      if nargs == 0:
+      # If no channel is given, use channel zero
+      if nargs == 1:
+        channelStr = "0"
+        valueStr = argList[0]
+      elif nargs == 2:
+        channelStr = argList[0]
+        valueStr = argList[1]
+      elif nargs == 0:
         print("WARNING: \"write\" expects one or two arguments.  No arguments were given")
         return None
-      elif nargs == 1:
-        # Assume channel zero should be used
-        #print deviceName
-        #print self.__scratchIO.devices[deviceName]
-        #print argList
-        self.__scratchIO.devices[deviceName].write("0",argList[0])
-      elif nargs == 2:
-        self.__scratchIO.devices[deviceName].write(argList[0],argList[1])
       else:
         print("WARNING: \"write\" expects one or two arguments.  %d arguments were given" % nargs)
         return None
+
+      # Check if the channel is a valid channel for this device.
+      self.__scratchIO.devices[deviceName]
+      channelNumber = self.__scratchIO.devices[deviceName].validOutputChannel(channelStr)
+      if channelNumber < 0:
+        return None
+
+      # Call the write function of this device.
+      self.__scratchIO.devices[deviceName].write(channelNumber,valueStr)
 
     elif functionName == 'config':
       if nargs == 0:

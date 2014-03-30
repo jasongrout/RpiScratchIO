@@ -29,13 +29,13 @@ class GenericDevice(object):
   #-----------------------------
 
   """Need to implement this in the derived class."""
-  def read(self,channelId):
+  def read(self,channelNumber):
     print("WARNING: \"%s\" does not contain a \"read\" function." % self.deviceName)
 
   #-----------------------------
 
   """Need to implement this in the derived class."""
-  def write(self,channelId,value):
+  def write(self,channelNumber,value):
     print("WARNING: \"%s\" does not contain a \"write\" function." % self.deviceName)
 
   #-----------------------------
@@ -82,34 +82,44 @@ class GenericDevice(object):
   #-----------------------------
 
   """Standard names for sensors"""
-  def sensorName(self,channelId):
+  def sensorName(self,channelNumber):
     if len(self.inputChannels) == 1:
       return self.deviceName
     else:
-      return self.deviceName+":"+str(channelId)
+      return self.deviceName+":"+str(channelNumber)
   
   #-----------------------------
 
-  """Announce to Scratch that the inputs exist as remote sensors"""
+  """Announce to Scratch that the device connections exist as remote sensors"""
   def addSensors(self):
-    if len(self.inputChannels) == 0:
+
+    # Build a list of all unique channel numbers.
+    # (A connection can be an input and an output.
+    # Therefore, remove duplicate entries.)
+    channelList = self.inputChannels
+    for outputChannel in self.outputChannels:
+      if not outputChannel in channelList:
+        channelList += [ outputChannel ]
+
+    if len(channelList) == 0:
       return None
 
-    sensorValues = {}
-    if len(self.inputChannels) == 1:
-      sensorValues[self.deviceName] = 0
+    sensorDict = {}
+    if len(channelList) == 1:
+      sensorDict[self.deviceName] = 0
     else:
-      for channelId in self.inputChannels:
-        sensorValues[self.deviceName+":"+str(channelId)] = 0
+      for channelId in channelList:
+        sensorDict[self.deviceName+":"+str(channelId)] = 0
 
-      # Tell Scratch about all of the input channels in one message.
-      #print sensorValues
-      self.scratchIO.scratchHandler.scratchConnection.sensorupdate(sensorValues)
+    # Tell Scratch about all of the input channels in one message.
+    print "I'll get you next"
+    print sensorDict
+    self.scratchIO.scratchHandler.scratchConnection.sensorupdate(sensorDict)
 
   #-----------------------------
 
   """Update sensor value in Scratch"""
-  def updateSensor(self,channelId,value):
+  def updateSensor(self,channelNumber,value):
     if not isinstance(value, (int, long, float)):
       print("WARNING: device \"%s\" attempted to send \"%s\" to a Scratch.  This is not a number and was ignored" % self.deviceName, value)
       return None
@@ -117,7 +127,7 @@ class GenericDevice(object):
     # Create a dict, with the sensor that needs to be updated as the
     # key and the value as the value for the given sensor.
     sensorValues = {}
-    sensorValues[self.sensorName(channelId)] = value
+    sensorValues[self.sensorName(channelNumber)] = value
 
     # Tell Scratch about this sensor value
     self.scratchIO.scratchHandler.scratchConnection.sensorupdate(sensorValues)
@@ -125,11 +135,10 @@ class GenericDevice(object):
   #-----------------------------
 
   """Send a broadcast message to Scratch in a standard form for a trigger"""
-  def broadcastTrigger(self,channelId):
+  def broadcastTrigger(self,channelNumber):
 
     # Broadcast message to Scratch
-    broadcast_msg="%s:trig" % self.sensorName(channelId)
-    #print broadcast_msg
+    broadcast_msg="%s:trig" % self.sensorName(channelNumber)
     self.scratchIO.scratchHandler.scratchConnection.broadcast(broadcast_msg)
 
 #=====================================
@@ -138,7 +147,7 @@ class GpioDevice(GenericDevice):
 
   def __init__(self,deviceName_,scratchIO_,connections_):
     super(GpioDevice, self).__init__(deviceName_,scratchIO_,connections_)
-    self.scratchIO.connections.requestGpioIds(self.deviceName,self.connections)
+    self.scratchIO.connectionsInfo.requestGpioIds(self.deviceName,self.connections)
 
   #-----------------------------
 
@@ -152,9 +161,13 @@ class SimpleGpio(GpioDevice):
 
   def __init__(self,deviceName_,scratchIO_,connections_):
     super(SimpleGpio, self).__init__(deviceName_,scratchIO_,connections_)
+
+    # Find the BCM id from the connection name, e.g. GPIO23
     self.bcmId = int(string.replace(self.connections[0],'GPIO',''))
-    self.inputChannels += [0] # Has just one channel
-    self.addSensors() # Add to Scratch
+ 
+    # Each pin can be used as an input or as an output
+    self.inputChannels += [0]
+    self.outputChannels += [0]
 
   #-----------------------------
 
@@ -197,20 +210,20 @@ class SimpleGpio(GpioDevice):
 
   #-----------------------------
 
-  def read(self,channelId): # to add this
+  def read(self,channelNumber): # to add this
     if not self.configured: # use the default options
       self.config(["in"])
     value = int(GPIO.input(self.bcmId))
-    self.updateSensor(channelId,value)
+    self.updateSensor(channelNumber,value)
 
   #-----------------------------
 
-  def write(self,channelId,value): # to add this
+  def write(self,channelNumber,value): # to add this
     if not self.configured: # use the default options 
       self.config(["out"])
     #print "GPIO.output(%d,%d)" % (self.bcmId, int(value))
     GPIO.output(self.bcmId,int(value))
-    self.updateSensor(channelId,value)
+    self.updateSensor(channelNumber,value)
 
   #-----------------------------
   
@@ -256,7 +269,6 @@ class FileConnection(GenericDevice):
   def __init__(self,deviceName_,scratchIO_,connections_):
     super(FileConnection, self).__init__(deviceName_,scratchIO_,connections_)
     self.inputChannels += [0] # One channel per file
-    self.addSensors() # Add to Scratch
 
   #-----------------------------
 
@@ -277,7 +289,7 @@ class FileConnection(GenericDevice):
 
   #-----------------------------  
 
-  def read(self,channelId):
+  def read(self,channelNumber):
     if not self.configured: # Use default read option
       self.config('r')
     if not self.readMode:
@@ -287,7 +299,7 @@ class FileConnection(GenericDevice):
 
   #-----------------------------
 
-  def write(self,channelId,value):
+  def write(self,channelNumber,value):
     if not self.configured: # Use default write option
       self.config('w')
     if not self.writeMode:
