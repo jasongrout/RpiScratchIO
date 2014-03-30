@@ -147,7 +147,7 @@ class GpioDevice(GenericDevice):
 
   def __init__(self,deviceName_,scratchIO_,connections_):
     super(GpioDevice, self).__init__(deviceName_,scratchIO_,connections_)
-    self.scratchIO.connectionsInfo.requestGpioIds(self.deviceName,self.connections)
+    self.scratchIO.connectionsMgr.requestGpioIds(self.deviceName,self.connections)
 
   #-----------------------------
 

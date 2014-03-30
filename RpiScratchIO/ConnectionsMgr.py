@@ -14,7 +14,7 @@ class GpioPin:
 
 #============================================
 
-class ConnectionsInfo:
+class ConnectionsMgr:
 
   def __init__(self):
 
