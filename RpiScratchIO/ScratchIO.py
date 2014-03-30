@@ -109,7 +109,7 @@ class ScratchIO:
 
       # Look for the last bracket
       objStr = deviceTypes[device]
-      print objStr   
+      #print objStr   
  
       parPos = str.rfind(objStr,"(")
       parPosClose = str.rfind(objStr,")")
@@ -120,7 +120,7 @@ class ScratchIO:
       # that are given to the class constructor
       objStr = objStr[0:parPos+1] + basicArguments + objStr[parPos+1:]
 
-      print objStr
+      #print objStr
  
       # Find the semi-colon before the class instantiation
       semiColonPos = str.rfind(objStr,";",0,parPos)
@@ -131,7 +131,7 @@ class ScratchIO:
       else:
         objStr = objStr[0:semiColonPos+1] + " deviceObj = " + objStr[semiColonPos+1:]
 
-      print objStr
+      #print objStr
 
       exec "%s" % objStr
       deviceObj.addSensors() # Tell Scratch about the input channels
