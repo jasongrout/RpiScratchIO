@@ -66,7 +66,7 @@ class ScratchHandler:
   #-----------------------------------------
 
   def __parseBroadcast(self,cmd):
-    if not ":" in cmd:
+    if string.find(cmd,":") == -1:
       return None
 
     #print cmd
@@ -149,7 +149,6 @@ class ScratchHandler:
         return None
 
       # Check if the channel is a valid channel for this device.
-      self.__scratchIO.devices[deviceName]
       channelNumber = self.__scratchIO.devices[deviceName].validOutputChannel(channelStr)
       if channelNumber < 0:
         return None
@@ -168,19 +167,29 @@ class ScratchHandler:
 
   def __parseSensorUpdate(self,cmd):
 
-    # The GPIO bcm pins are special and correspond to one channel only.
-    # Other devices with one channel, should be allowed to assume channel 0.
-    if not ":" in cmd:
-      deviceName = cmd
-      channelId = "0"
-    else:
-      frags = string.split(cmd,":")
-      deviceName = frags[0]
-      channelId = frags[1]
+    # The keys are the global variable names in Scratch
+    for variableName in cmd.keys():
 
-    for deviceName in cmd.keys():
+      # The GPIO bcm pins are special and correspond to one channel only.
+      # Other devices with one channel, should be allowed to assume channel 0.
+      if string.find(variableName,":") == -1:
+        deviceName = variableName
+        channelStr = "0"
+      else:
+        frags = string.split(variableName,":")
+        deviceName = frags[0]
+        channelStr = frags[1]
+
       # Could be some other global variable.
       # Therefore, should not throw an error, but just ignore the change.
       if not deviceName in self.deviceNames:
         return None
-      self.__scratchIO.devices[deviceName].write(channelId,cmd[deviceName])
+      
+      # Check if the channel is a valid channel for this device.
+      channelNumber = self.__scratchIO.devices[deviceName].validOutputChannel(channelStr)
+      if channelNumber < 0:
+        return None
+
+      print ">> %s %d %s %s" % (deviceName, channelNumber, variableName,cmd[variableName] )
+
+      self.__scratchIO.devices[deviceName].write(channelNumber,cmd[variableName])
