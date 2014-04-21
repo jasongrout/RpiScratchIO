@@ -118,9 +118,21 @@ class ScratchIO:
 
       # Prepend the basic arguments, in front of any optional arguments
       # that are given to the class constructor
-      objStr = objStr[0:parPos+1] + basicArguments + objStr[parPos+1:]
+      newStr = objStr[0:parPos+1] + basicArguments 
+      if (parPos - parPosClose) == 1:
+        newStr += objStr[parPos+1:]
+      else:
+        optionalArguments = objStr[parPos+1:parPosClose]
+        # If it is just white space
+        if optionalArguments.isspace():
+          newStr += objStr[parPos+1:]
+        else:
+          newStr += "," + objStr[parPos+1:]
 
-      #print objStr
+      objStr = newStr
+  
+
+      print objStr
  
       # Find the semi-colon before the class instantiation
       semiColonPos = str.rfind(objStr,";",0,parPos)
