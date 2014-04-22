@@ -1,4 +1,30 @@
-from Devices import SpiDevice
+from Devices import GpioDevice
+
+#=====================================
+
+class SpiDevice(GpioDevice):
+
+  def __init__(self,deviceName_,scratchIO_,connections_):
+    super(SpiDevice, self).__init__(deviceName_,scratchIO_,connections_)
+    if len(self.connections) != 1:
+      raise Exception("ERROR: SPI device %s must have one connection to SPI0 or SPI1" % self.deviceName)
+    if self.connections[0] == "SPI0":
+      spiDevice = 0
+    elif self.connections[0] == "SPI1":
+      spiDevice = 1
+    else:
+      raise Exception("ERROR: SPI device %s must have one connection to SPI0 or SPI1" % self.deviceName)
+
+    spiChannel = 0
+
+    # Create a SPI connection
+    self.spi = spidev.SpiDev()
+    self.spi.open(spiChannel,spiDevice)
+
+  #-----------------------------
+
+  def cleanup(self):
+    self.spi.close()
 
 #=====================================
 

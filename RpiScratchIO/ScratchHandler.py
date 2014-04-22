@@ -24,18 +24,18 @@ class ScratchHandler:
         port = self.__scratchIO.config.getint("ScratchConnection","port")
 
     # Open a Scratch connection.
-    print " >> Connecting to Scratch on %s using port %d" % (host, port)
+    print(" >> Connecting to Scratch on %s using port %d" % (host, port))
     try:
       self.scratchConnection = scratch.Scratch(host, port) 
     except scratch.ScratchError:
-      print "ERROR: Cannot connect to Scratch."
-      print "       Start Scratch with remote sensors enabled before running this program."
+      print("ERROR: Cannot connect to Scratch.")
+      print("       Start Scratch with remote sensors enabled before running this program.")
       sys.exit(1)
 
   #-----------------------------------------
 
   def cleanup(self):
-    print " >> Shutting down the connection to Scratch."
+    print(" >> Shutting down the connection to Scratch.")
     self.shutdown_flag = False
     self.scratchConnection.disconnect()
 
@@ -58,7 +58,7 @@ class ScratchHandler:
   #-----------------------------------------
 
   def listen(self):
-    print " >> Listening for commands from Scratch."
+    print(" >> Listening for commands from Scratch.")
     self.shutdown_flag = False
     self.server_thread = threading.Thread(target=self.clientThread)
     self.server_thread.start()
@@ -190,6 +190,6 @@ class ScratchHandler:
       if channelNumber < 0:
         return None
 
-      print ">> %s %d %s %s" % (deviceName, channelNumber, variableName,cmd[variableName] )
+      #print ">> %s %d %s %s" % (deviceName, channelNumber, variableName,cmd[variableName] )
 
       self.__scratchIO.devices[deviceName].write(channelNumber,cmd[variableName])

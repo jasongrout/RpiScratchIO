@@ -44,7 +44,7 @@ class ScratchIO:
     self.__parseConfiguration()
 
     # This is for debugging
-    print " >> Printing the device connections:"
+    print(" >> Printing the device connections:")
     self.connectionsMgr.printConnections()
 
     # Start the Scratch listening thread
@@ -132,7 +132,7 @@ class ScratchIO:
       objStr = newStr
   
 
-      print objStr
+      #print objStr
  
       # Find the semi-colon before the class instantiation
       semiColonPos = str.rfind(objStr,";",0,parPos)
