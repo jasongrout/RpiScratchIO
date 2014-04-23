@@ -1,3 +1,4 @@
+import spidev
 from Devices import GpioDevice
 
 #=====================================

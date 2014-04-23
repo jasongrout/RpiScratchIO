@@ -1,4 +1,4 @@
-import string, spidev
+import string
 import RPi.GPIO as GPIO
 
 #=====================================
@@ -167,6 +167,9 @@ class SimpleGpio(GpioDevice):
     self.inputChannels += [0]
     self.outputChannels += [0]
 
+    # To prevent edge connection being configured twice
+    self.callBackSet = False
+
   #-----------------------------
 
   def config(self,argList):
@@ -188,15 +191,23 @@ class SimpleGpio(GpioDevice):
     elif argList[0] == "out":
       GPIO.setup(self.bcmId,GPIO.OUT)
     elif argList[0] == "callback":
+      if self.callBackSet:
+        print("WARNING: device %s already has a callback set." % self.deviceName)
+        return None
+
       if nargs == 1:
         print("WARNING: device %s expects \"callback,rising\",\"callback,falling\" or \"callback,both\"")
         return None
+
       if argList[1] == 'rising':
-        GPIO.add_event_detect(self.bcmId, GPIO.RISING, callback=self.gpioCallBack, bouncetime=200) 
+        GPIO.add_event_detect(self.bcmId, GPIO.RISING, callback=self.gpioCallBack, bouncetime=200)
+        self.callBackSet = True 
       elif argList[1] == 'falling':
         GPIO.add_event_detect(self.bcmId, GPIO.FALLING, callback=self.gpioCallBack, bouncetime=200)
+        self.callBackSet = True
       elif argList[1] == 'both':
         GPIO.add_event_detect(self.bcmId, GPIO.BOTH, callback=self.gpioCallBack, bouncetime=200)
+        self.callBackSet = True
       else:
         print("WARNING: device %s expects \"callback,rising\",\"callback,falling\" or \"callback,both\"")
         return None
