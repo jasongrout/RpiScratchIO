@@ -23,8 +23,9 @@ class ConnectionsMgr:
 
     # Get the board version since 
     self.__boardVersion = GPIO.RPI_REVISION
-    if self.__boardVersion != 1 and self.__boardVersion != 2:
-      raise NotImplementedException(" ERROR: expect board version 1 or 2")
+    # 1 == Revision 1, 2 == Revision 2, 3 == B+/A+ 
+    if self.__boardVersion not in (1,2,3):
+      raise NotImplementedException(" ERROR: expect board version 1, 2, or 3")
 
     # Fill the GPIO pin dictionary with the pin mapping.
     self.__gpioPins = {}
@@ -36,14 +37,14 @@ class ConnectionsMgr:
     # pin 3:
     if self.__boardVersion == 1:
       self.__gpioPins[0] = GpioPin(1,3,0,'I2C0_SDA')
-    elif self.__boardVersion == 2:
+    elif self.__boardVersion in (2,3):
       self.__gpioPins[2] = GpioPin(1,3,2,'I2C1_SDA')
 
     # pin 4 is 5V
     # pin 5:
     if self.__boardVersion == 1:
       self.__gpioPins[1] = GpioPin(1,5,1,'I2C0_SCL')
-    elif self.__boardVersion == 2:
+    elif self.__boardVersion in (2,3):
       self.__gpioPins[3] = GpioPin(1,5,3,'I2C1_SCL')
     # pin 6 is GND
     # pin 7:
@@ -60,7 +61,7 @@ class ConnectionsMgr:
     # pin 13:
     if self.__boardVersion == 1:
       self.__gpioPins[21] = GpioPin(1,13,21,'None')
-    elif self.__boardVersion == 2:
+    elif self.__boardVersion in (2,3):
       self.__gpioPins[27] = GpioPin(1,13,27,'None')
     # pin 14 is GND
     # pin 15:
@@ -82,11 +83,37 @@ class ConnectionsMgr:
     # pin 24:
     self.__gpioPins[8] = GpioPin(1,24,8,'SPI0_CE0')
     # pin 25 is GND
-    # pin 16:
+    # pin 26:
     self.__gpioPins[7] = GpioPin(1,26,7,'SPI0_CE1')
     
+    if self.__boardVersion == 3:
+        # A+ or B+ board
+        # pin 27 is ID_SD
+        # pin 28 is ID_SD
+        # pin 29:
+        self.__gpioPins[5] = GpioPin(1,29,5,'None')
+        # pin 30 is GND
+        # pin 31:
+        self.__gpioPins[6] = GpioPin(1,31,6,'None')
+        # pin 32:
+        self.__gpioPins[12] = GpioPin(1,32,12,'None')
+        # pin 33:
+        self.__gpioPins[13] = GpioPin(1,33,13,'None')
+        # pin 34 is GND
+        # pin 35:
+        self.__gpioPins[19] = GpioPin(1,35,19,'None')
+        # pin 36:
+        self.__gpioPins[16] = GpioPin(1,36,16,'None')
+        # pin 37:
+        self.__gpioPins[26] = GpioPin(1,37,26,'None')
+        # pin 38:
+        self.__gpioPins[20] = GpioPin(1,38,20,'None')
+        # pin 39 is GND
+        # pin 40:
+        self.__gpioPins[21] = GpioPin(1,40,21,'None')
+    
     # ---------------------------------------
-    if self.__boardVersion == 2:
+    if self.__boardVersion in (2,3):
       # P5 header
       # pin 1 is 5V
       # pin 2 is 3V3
@@ -165,7 +192,7 @@ class ConnectionsMgr:
           for bcmId in self.__i2c0_pins:
             self.__gpioPins[bcmId].associatedDevices += [ deviceName ]
         elif connection == "I2C1":
-           if self.__boardVersion != 2:
+           if self.__boardVersion not in (2,3):
              raise Exception("ERROR: error I2C1 is not available on this board type.")
            for bcmId in self.__i2c1_pins:
              self.__gpioPins[bcmId].associatedDevices += [ deviceName ]
